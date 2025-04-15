@@ -71,10 +71,3 @@ func TestInterceptor(t *testing.T) {
 
 	fmt.Println("\n测试完成!")
 }
-
-// 这个函数可以在main.go中调用
-func RunInterceptorTest() {
-	fmt.Println("\n==== 开始测试高德API拦截器功能 ====")
-	TestInterceptor()
-	fmt.Println("==== 高德API拦截器测试完成 ====\n")
-}
