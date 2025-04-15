@@ -18,6 +18,7 @@ package einoagent
 
 import (
 	"context"
+	"os"
 
 	"github.com/cloudwego/eino-examples/quickstart/eino_assistant/pkg/tool/amap"
 	"github.com/cloudwego/eino-examples/quickstart/eino_assistant/pkg/tool/einotool"
@@ -96,7 +97,9 @@ func NewDDGSearch(ctx context.Context, config *duckduckgo.Config) (tn tool.BaseT
 
 // NewAmapTools 获取高德地图工具
 func NewAmapTools(ctx context.Context) ([]tool.BaseTool, error) {
-	return amap.GetAmapTools(ctx)
+	// 启用POI数据拦截
+	os.Setenv("ENABLE_POI_INTERCEPTOR", "true")
+	return amap.GetInterceptedAmapTools(ctx)
 }
 
 func NewOpenFileTool(ctx context.Context) (tn tool.BaseTool, err error) {

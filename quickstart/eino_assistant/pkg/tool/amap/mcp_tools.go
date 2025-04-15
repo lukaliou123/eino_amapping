@@ -30,7 +30,7 @@ func GetMCPTools(ctx context.Context, mcpClient *MCPClient) ([]tool.BaseTool, er
 	if mcpClient == nil {
 		// 如果没有提供客户端，则创建一个新的客户端
 		var err error
-		mcpClient, err = NewMCPClient(ctx, "")
+		mcpClient, err = NewMCPClient(ctx, DefaultMCPSSEURL)
 		if err != nil {
 			return nil, fmt.Errorf("创建MCP客户端失败: %w", err)
 		}
