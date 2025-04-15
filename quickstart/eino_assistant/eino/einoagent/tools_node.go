@@ -19,6 +19,7 @@ package einoagent
 import (
 	"context"
 
+	"github.com/cloudwego/eino-examples/quickstart/eino_assistant/pkg/tool/amap"
 	"github.com/cloudwego/eino-examples/quickstart/eino_assistant/pkg/tool/einotool"
 	"github.com/cloudwego/eino-examples/quickstart/eino_assistant/pkg/tool/gitclone"
 	"github.com/cloudwego/eino-examples/quickstart/eino_assistant/pkg/tool/open"
@@ -53,13 +54,25 @@ func GetTools(ctx context.Context) ([]tool.BaseTool, error) {
 		return nil, err
 	}
 
-	return []tool.BaseTool{
+	// 获取高德地图工具
+	amapTools, err := NewAmapTools(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 合并工具列表
+	tools := []tool.BaseTool{
 		einoAssistantTool,
 		toolTask,
 		toolOpen,
 		toolGitClone,
 		toolDDGSearch,
-	}, nil
+	}
+
+	// 添加高德地图工具
+	tools = append(tools, amapTools...)
+
+	return tools, nil
 }
 
 func defaultDDGSearchConfig(ctx context.Context) (*duckduckgo.Config, error) {
@@ -79,6 +92,11 @@ func NewDDGSearch(ctx context.Context, config *duckduckgo.Config) (tn tool.BaseT
 		return nil, err
 	}
 	return tn, nil
+}
+
+// NewAmapTools 获取高德地图工具
+func NewAmapTools(ctx context.Context) ([]tool.BaseTool, error) {
+	return amap.GetAmapTools(ctx)
 }
 
 func NewOpenFileTool(ctx context.Context) (tn tool.BaseTool, err error) {

@@ -6,3 +6,5 @@
 {"role":"assistant","content":"为你查询到CloudWeGo的相关信息如下：\n- CloudWeGo是一套由字节跳动开源的、可快速构建企业级云原生微服务架构的中间件集合。该项目共同的特点是高性能、高扩展性、高可靠，专注于微服务通信与治理。\n- 第一批开源了四个项目：Kitex、Netpoll、Thriftgo和netpoll-http2， 以RPC框架Kitex和网络库Netpoll为主。最近又发布了面向 AI 应用场景的开发框架 Eino，致力于让开发者轻松构建高质量的 AI 应用。\n\n更多信息可查看[CloudWeGo官网](https://www.cloudwego.io/)。","response_meta":{"finish_reason":"stop","usage":{"prompt_tokens":2377,"completion_tokens":186,"total_tokens":2563}}}
 {"role":"user","content":"帮我定一个大后天晚上 19:00 的 todo，要把 Eino 的 example 通读一遍"}
 {"role":"assistant","content":"已成功为你添加一个待办事项：在2025-1-17 19:00，把 Eino 的 example 通读一遍。","response_meta":{"finish_reason":"stop","usage":{"prompt_tokens":1083,"completion_tokens":36,"total_tokens":1119}}}
+{"role":"user","content":"我想去北京玩"}
+{"role":"assistant","content":"","response_meta":{"finish_reason":"tool_calls","usage":{"prompt_tokens":1287,"completion_tokens":119,"total_tokens":1406}},"extra":{"ark-request-id":"02174470679616339db3cc1c609c76a1bd5479dfa66b02cd06cbf"}}
