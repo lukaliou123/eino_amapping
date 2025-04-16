@@ -72,8 +72,8 @@ type DataVectorStoreManager interface {
 var (
 	// 默认向量配置
 	DefaultVectorConfig = VectorConfig{
-		ModelEndpoint:    os.Getenv("EMBEDDING_MODEL_ENDPOINT"),
-		APIKey:           os.Getenv("EMBEDDING_API_KEY"),
+		ModelEndpoint:    os.Getenv("ARK_EMBEDDING_MODEL"),
+		APIKey:           os.Getenv("ARK_API_KEY"),
 		StoragePath:      "data/amap_vectors",
 		Enabled:          false,
 		EnableRedisStore: false,

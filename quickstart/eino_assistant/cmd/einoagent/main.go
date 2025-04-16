@@ -19,6 +19,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/cloudwego/eino-examples/quickstart/eino_assistant/pkg/tool/amap"
 	"log"
 	"os"
 	"time"
@@ -45,8 +46,34 @@ func init() {
 
 	// check some essential envs
 	env.MustHasEnvs("ARK_CHAT_MODEL", "ARK_EMBEDDING_MODEL", "ARK_API_KEY")
-}
 
+	// 初始化高德地图数据向量化配置
+	embeddingModel := os.Getenv("ARK_EMBEDDING_MODEL")
+	embeddingAPIKey := os.Getenv("ARK_API_KEY")
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
+
+	// 设置向量化配置
+	amap.SetVectorConfig(amap.VectorConfig{
+		ModelEndpoint:    embeddingModel,
+		APIKey:           embeddingAPIKey,
+		StoragePath:      "data/amap_vectors",
+		Enabled:          true,
+		EnableRedisStore: true,
+		RedisConfig: &amap.RedisVectorStoreConfig{
+			Address:         redisAddr,
+			Password:        "",
+			DB:              0,
+			IndexPrefix:     "amap",
+			VectorDimension: 1536,
+			DistanceMetric:  "cosine",
+		},
+	})
+
+	log.Println("已初始化高德地图数据向量化配置")
+}
 func main() {
 	// 获取端口
 	port := os.Getenv("PORT")

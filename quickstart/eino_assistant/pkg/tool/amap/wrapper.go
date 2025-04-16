@@ -43,8 +43,9 @@ func GetInterceptedAmapTools(ctx context.Context) ([]tool.BaseTool, error) {
 	}
 
 	log.Printf("成功获取 %d 个高德地图工具\n", len(tools))
-
 	// 如果启用了POI拦截器，则包装工具
+	enableStr := os.Getenv("ENABLE_POI_INTERCEPTOR")
+	EnablePOIInterceptor = enableStr == "true" || enableStr == "1"
 	if EnablePOIInterceptor {
 		log.Println("已启用POI数据拦截，将自动提取API返回数据")
 		wrappedTools := make([]tool.BaseTool, len(tools))
