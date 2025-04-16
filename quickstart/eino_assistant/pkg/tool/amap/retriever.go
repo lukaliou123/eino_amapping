@@ -6,12 +6,11 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/cloudwego/eino-ext/components/embedding/ark"
 	"github.com/cloudwego/eino-ext/components/retriever/redis"
 	"github.com/cloudwego/eino/components/retriever"
 	"github.com/cloudwego/eino/schema"
 	redisCli "github.com/redis/go-redis/v9"
-
-	"github.com/cloudwego/eino-ext/components/embedding/ark"
 )
 
 // 默认值常量
@@ -155,6 +154,9 @@ func NewAmapRedisRetriever(ctx context.Context, config *AmapRedisRetrieverConfig
 					resp.MetaData[field] = val
 				}
 			}
+
+			// 添加来源标记，便于识别结果来自哪个检索器
+			resp.MetaData["source"] = "amap"
 
 			return resp, nil
 		},
