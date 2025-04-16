@@ -1,19 +1,19 @@
 package amap
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/cloudwego/eino/schema"
+	"github.com/volcengine/volcengine-go-sdk/service/arkruntime"
+	"github.com/volcengine/volcengine-go-sdk/service/arkruntime/model"
 )
 
 // VectorConfig 存储向量配置信息
@@ -425,55 +425,32 @@ func GetEmbedding(ctx context.Context, text string) ([]float32, error) {
 		return nil, fmt.Errorf("向量化功能未启用")
 	}
 
-	// 创建请求体
-	requestBody, err := json.Marshal(map[string]interface{}{
-		"input": text,
-		"model": "doubao-embedding-large", // 使用默认模型，可配置
-	})
+	// 使用 volcengine-go-sdk 库创建 arkruntime 客户端
+	client := arkruntime.NewClientWithApiKey(
+		vectorConfig.APIKey,
+		arkruntime.WithBaseUrl("https://ark.cn-beijing.volces.com/api/v3"),
+		arkruntime.WithRegion("cn-beijing"),
+	)
+
+	// 创建 embedding 请求
+	req := model.EmbeddingRequestStrings{
+		Input: []string{text},
+		Model: vectorConfig.ModelEndpoint, // 使用配置的模型 endpoint ID
+	}
+
+	// 调用 API
+	resp, err := client.CreateEmbeddings(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("创建请求体失败: %w", err)
+		return nil, fmt.Errorf("调用 Embedding API 失败: %w", err)
 	}
 
-	// 创建HTTP请求
-	req, err := http.NewRequestWithContext(ctx, "POST", vectorConfig.ModelEndpoint, bytes.NewBuffer(requestBody))
-	if err != nil {
-		return nil, fmt.Errorf("创建HTTP请求失败: %w", err)
+	// 检查响应
+	if len(resp.Data) == 0 || len(resp.Data[0].Embedding) == 0 {
+		return nil, fmt.Errorf("API 返回的向量数据为空")
 	}
 
-	// 设置请求头
-	req.Header.Set("Content-Type", "application/json")
-	if vectorConfig.APIKey != "" {
-		req.Header.Set("Authorization", "Bearer "+vectorConfig.APIKey)
-	}
-
-	// 发送请求
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("发送HTTP请求失败: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// 读取响应
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("读取响应失败: %w", err)
-	}
-
-	// 检查状态码
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API返回非200状态码: %d, 响应: %s", resp.StatusCode, string(respBody))
-	}
-
-	// 解析响应
-	var result struct {
-		Data []float32 `json:"data"`
-	}
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %w", err)
-	}
-
-	return result.Data, nil
+	// 返回向量
+	return resp.Data[0].Embedding, nil
 }
 
 // VectorizeData 将高德数据向量化
