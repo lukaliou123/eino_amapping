@@ -86,7 +86,45 @@ func (it *InterceptorTool) InvokableRun(ctx context.Context, argumentsInJSON str
 
 	// 异步处理，不阻塞主流程
 	go func() {
-		log.Printf("工具 %s 返回结果，准备提取POI数据", toolInfo.Name)
+		log.Printf("工具 %s 返回结果，准备提取数据", toolInfo.Name)
+
+		// 首先尝试解析响应JSON
+		var responseData map[string]interface{}
+		var responseContent []struct {
+			Text string `json:"text"`
+			Type string `json:"type"`
+		}
+
+		if err := json.Unmarshal([]byte(result), &struct {
+			Content *[]struct {
+				Text string `json:"text"`
+				Type string `json:"type"`
+			} `json:"content"`
+		}{&responseContent}); err == nil && len(responseContent) > 0 {
+			// 找到文本内容
+			for _, content := range responseContent {
+				if content.Type == "text" {
+					// 尝试解析JSON文本
+					if err := json.Unmarshal([]byte(content.Text), &responseData); err == nil {
+						// 成功解析JSON
+						log.Printf("成功解析工具 %s 的响应数据", toolInfo.Name)
+
+						// 向量化处理
+						if IsVectorizationEnabled() {
+							log.Printf("准备向量化工具 %s 的响应数据", toolInfo.Name)
+							go func() {
+								_, err := VectorizeData(context.Background(), toolInfo.Name, responseData)
+								if err != nil {
+									log.Printf("向量化工具 %s 的响应数据失败: %v", toolInfo.Name, err)
+								}
+							}()
+						}
+
+						break
+					}
+				}
+			}
+		}
 
 		// 根据工具类型处理结果
 		switch {
@@ -129,7 +167,7 @@ func (it *InterceptorTool) InvokableRun(ctx context.Context, argumentsInJSON str
 			log.Printf("成功提取天气数据: %s, 城市: %s", weatherData.Description, weatherData.City)
 
 		default:
-			log.Printf("工具 %s 暂不支持数据提取", toolInfo.Name)
+			log.Printf("工具 %s 暂不支持额外的数据提取", toolInfo.Name)
 		}
 	}()
 
@@ -250,15 +288,17 @@ func extractPOIFromDetail(resultJSON string, toolName string, query string) (*PO
 	for _, content := range result.Content {
 		if content.Type == "text" {
 			var poiDetail struct {
-				ID          string   `json:"id"`
-				Name        string   `json:"name"`
-				Address     string   `json:"address"`
-				Location    string   `json:"location"`
-				Type        string   `json:"type"`
-				Tel         string   `json:"tel"`
-				Tags        []string `json:"tags"`
-				CityName    string   `json:"cityname"`
-				AddrContent string   `json:"address_content"`
+				ID         string   `json:"id"`
+				Name       string   `json:"name"`
+				Address    string   `json:"address"`
+				Location   string   `json:"location"`
+				TypeCode   string   `json:"typecode"`
+				Type       string   `json:"type"`
+				CityName   string   `json:"cityname"`
+				Tags       []string `json:"tags,omitempty"`
+				Tel        string   `json:"tel,omitempty"`
+				Distance   string   `json:"distance,omitempty"`
+				Importance string   `json:"importance,omitempty"`
 			}
 
 			if err := json.Unmarshal([]byte(content.Text), &poiDetail); err != nil {
@@ -283,14 +323,23 @@ func extractPOIFromDetail(resultJSON string, toolName string, query string) (*PO
 				description += "电话: " + poiDetail.Tel
 			}
 
+			// 设置城市
+			poiCity := ""
+			if poiDetail.CityName != "" {
+				poiCity = poiDetail.CityName
+			}
+
 			// 创建元数据
 			metadata := make(map[string]string)
-			if poiDetail.AddrContent != "" {
-				metadata["addr_content"] = poiDetail.AddrContent
+			if poiDetail.Distance != "" {
+				metadata["distance"] = poiDetail.Distance
+			}
+			if poiDetail.Importance != "" {
+				metadata["importance"] = poiDetail.Importance
 			}
 
 			// 创建POI数据对象
-			return &POIData{
+			poiObj := POIData{
 				ID:          poiID,
 				Name:        poiDetail.Name,
 				Address:     poiDetail.Address,
@@ -299,14 +348,16 @@ func extractPOIFromDetail(resultJSON string, toolName string, query string) (*PO
 				Location:    poiDetail.Location,
 				ToolName:    toolName,
 				Query:       query,
-				City:        poiDetail.CityName,
+				City:        poiCity,
 				Metadata:    metadata,
 				RawData:     content.Text,
-			}, nil
+			}
+
+			return &poiObj, nil
 		}
 	}
 
-	return nil, fmt.Errorf("未找到POI详情数据")
+	return nil, fmt.Errorf("未找到POI详情")
 }
 
 // extractWeatherData 从天气结果中提取数据

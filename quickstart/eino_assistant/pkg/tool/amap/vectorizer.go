@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/cloudwego/eino/schema"
 )
 
 // VectorConfig 存储向量配置信息
@@ -24,6 +26,10 @@ type VectorConfig struct {
 	StoragePath string
 	// 是否启用向量化
 	Enabled bool
+	// Redis存储配置，如果为nil则不存储到Redis
+	RedisConfig *RedisVectorStoreConfig
+	// 是否启用Redis存储
+	EnableRedisStore bool
 }
 
 // DataVector 表示各种高德数据向量化后的结构
@@ -53,17 +59,29 @@ type DataVector struct {
 	} `json:"metadata"`
 }
 
+// DataVectorStoreManager 数据向量存储管理器接口
+type DataVectorStoreManager interface {
+	// 存储数据向量
+	StoreDataVector(ctx context.Context, dataVector *DataVector) error
+	// 关闭存储
+	Close() error
+}
+
 var (
 	// 默认向量配置
 	DefaultVectorConfig = VectorConfig{
-		ModelEndpoint: os.Getenv("EMBEDDING_MODEL_ENDPOINT"),
-		APIKey:        os.Getenv("EMBEDDING_API_KEY"),
-		StoragePath:   "data/amap_vectors",
-		Enabled:       false,
+		ModelEndpoint:    os.Getenv("EMBEDDING_MODEL_ENDPOINT"),
+		APIKey:           os.Getenv("EMBEDDING_API_KEY"),
+		StoragePath:      "data/amap_vectors",
+		Enabled:          false,
+		EnableRedisStore: false,
 	}
 
 	// 全局向量配置
 	vectorConfig = DefaultVectorConfig
+
+	// Redis存储器
+	redisStore *AmapRedisStore
 )
 
 // 数据类型常量
@@ -99,6 +117,17 @@ func SetVectorConfig(config VectorConfig) {
 	// 确保存储目录存在
 	if vectorConfig.Enabled && vectorConfig.StoragePath != "" {
 		os.MkdirAll(vectorConfig.StoragePath, 0755)
+	}
+
+	// 初始化Redis存储
+	if vectorConfig.Enabled && vectorConfig.EnableRedisStore && vectorConfig.RedisConfig != nil {
+		var err error
+		redisStore, err = NewAmapRedisStore(context.Background(), vectorConfig.RedisConfig)
+		if err != nil {
+			log.Printf("初始化Redis向量存储失败: %v", err)
+		} else {
+			log.Printf("已初始化Redis向量存储")
+		}
 	}
 }
 
@@ -494,9 +523,18 @@ func VectorizeData(ctx context.Context, toolName string, data map[string]interfa
 	dataVector.Metadata.ID = dataID
 	dataVector.Metadata.Attributes = attributes
 
-	// 保存向量
+	// 保存到本地文件
 	if err := SaveDataVector(dataID, dataVector); err != nil {
-		log.Printf("保存数据向量失败: %v", err)
+		log.Printf("保存数据向量到文件失败: %v", err)
+	}
+
+	// 存储到Redis
+	if redisStore != nil {
+		if err := redisStore.StoreDataVector(ctx, dataVector); err != nil {
+			log.Printf("保存数据向量到Redis失败: %v", err)
+		} else {
+			log.Printf("数据向量已存储到Redis, ID: %s", dataID)
+		}
 	}
 
 	return dataVector, nil
@@ -583,4 +621,46 @@ func ProcessBatch(ctx context.Context, items []map[string]interface{}, toolName 
 	}
 
 	log.Printf("完成批量处理工具[%s]的%d个数据项向量化", toolName, len(items))
+}
+
+// SearchSimilarData 搜索相似的数据
+func SearchSimilarData(ctx context.Context, queryText string, dataType string, limit int) ([]*schema.Document, error) {
+	if !IsVectorizationEnabled() || redisStore == nil {
+		return nil, fmt.Errorf("向量化功能或Redis存储未启用")
+	}
+
+	// 获取查询文本的向量
+	queryVector, err := GetEmbedding(ctx, queryText)
+	if err != nil {
+		return nil, fmt.Errorf("获取查询向量失败: %w", err)
+	}
+
+	// 搜索相似数据
+	return redisStore.SearchSimilar(ctx, queryVector, dataType, limit)
+}
+
+// SearchSimilarDataFiltered 按条件过滤搜索相似的数据
+func SearchSimilarDataFiltered(ctx context.Context, queryText string, dataType string, filters map[string]interface{}, limit int) ([]*schema.Document, error) {
+	if !IsVectorizationEnabled() || redisStore == nil {
+		return nil, fmt.Errorf("向量化功能或Redis存储未启用")
+	}
+
+	// 获取查询文本的向量
+	queryVector, err := GetEmbedding(ctx, queryText)
+	if err != nil {
+		return nil, fmt.Errorf("获取查询向量失败: %w", err)
+	}
+
+	// 按条件过滤搜索相似数据
+	return redisStore.FilteredSearch(ctx, queryVector, dataType, filters, limit)
+}
+
+// CloseVectorization 关闭向量化相关资源
+func CloseVectorization() {
+	if redisStore != nil {
+		if err := redisStore.Close(); err != nil {
+			log.Printf("关闭Redis向量存储失败: %v", err)
+		}
+		redisStore = nil
+	}
 }

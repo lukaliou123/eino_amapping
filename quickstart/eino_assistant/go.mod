@@ -11,6 +11,7 @@ require (
 	github.com/cloudwego/eino-ext/components/model/ark v0.0.0-20250225083118-fd27d80f189c
 	github.com/cloudwego/eino-ext/components/retriever/redis v0.0.0-20250225083118-fd27d80f189c
 	github.com/cloudwego/eino-ext/components/tool/duckduckgo v0.0.0-20250225083118-fd27d80f189c
+	github.com/cloudwego/eino-ext/components/tool/mcp v0.0.0-20250415073426-726b929afbc2
 	github.com/cloudwego/eino-ext/devops v0.1.3
 	github.com/cloudwego/hertz v0.9.5
 	github.com/google/uuid v1.6.0
@@ -18,14 +19,11 @@ require (
 	github.com/hertz-contrib/obs-opentelemetry/tracing v0.4.1
 	github.com/hertz-contrib/sse v0.0.6-0.20240617114443-10a844794bf3
 	github.com/joho/godotenv v1.5.1
+	github.com/mark3labs/mcp-go v0.20.1
 	github.com/redis/go-redis/v9 v9.7.0
 )
 
-require (
-	github.com/cloudwego/eino-ext/components/tool/mcp v0.0.0-20250415073426-726b929afbc2 // indirect
-	github.com/mark3labs/mcp-go v0.20.1 // indirect
-	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
-)
+require github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 
 require (
 	github.com/bytedance/gopkg v0.1.0 // indirect
