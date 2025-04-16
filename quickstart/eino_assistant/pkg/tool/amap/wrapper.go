@@ -6,9 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/cloudwego/eino-ext/components/tool/mcp"
 	"github.com/cloudwego/eino/components/tool"
-	mcplib "github.com/mark3labs/mcp-go/client"
 )
 
 // MCPDefaultURL 默认的高德地图MCP SSE URL (重命名避免冲突)
@@ -35,23 +33,11 @@ func GetInterceptedAmapTools(ctx context.Context) ([]tool.BaseTool, error) {
 	}
 
 	// 创建MCP SSE客户端
-	cli, err := mcplib.NewSSEMCPClient(mcpURL)
-	if err != nil {
-		return nil, fmt.Errorf("创建MCP客户端失败: %w", err)
-	}
-
-	// 启动客户端连接
-	err = cli.Start(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("启动MCP客户端连接失败: %w", err)
-	}
+	cli, err := NewMCPClient(ctx, mcpURL)
 
 	// 获取工具列表
 	log.Println("正在获取高德地图工具列表...")
-	tools, err := mcp.GetTools(ctx, &mcp.Config{
-		Cli:          cli,
-		ToolNameList: ToolNamesToFetch,
-	})
+	tools, err := GetMCPTools(ctx, cli)
 	if err != nil {
 		return nil, fmt.Errorf("获取高德地图工具失败: %w", err)
 	}

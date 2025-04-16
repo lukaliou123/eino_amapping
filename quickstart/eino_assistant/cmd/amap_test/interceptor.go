@@ -91,5 +91,5 @@ func TestInterceptorMain() {
 func RunInterceptorTestMain() {
 	fmt.Println("\n==== 开始测试高德API拦截器功能 ====")
 	TestInterceptorMain()
-	fmt.Println("==== 高德API拦截器测试完成 ====\n")
+
 }
