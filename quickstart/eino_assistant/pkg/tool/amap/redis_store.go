@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/cloudwego/eino/schema"
 	"github.com/redis/go-redis/v9"
@@ -25,6 +26,8 @@ type RedisVectorStoreConfig struct {
 	VectorDimension int
 	// 距离度量方式："cosine"、"l2"、"ip"
 	DistanceMetric string
+	// 数据过期时间（天）, 0表示不过期
+	TTLDays int
 }
 
 // 默认配置
@@ -35,6 +38,7 @@ var DefaultRedisConfig = RedisVectorStoreConfig{
 	IndexPrefix:     "amap",
 	VectorDimension: 1536, // 根据使用的嵌入模型调整
 	DistanceMetric:  "cosine",
+	TTLDays:         3, // 默认3天过期
 }
 
 // AmapRedisStore 高德地图数据Redis向量存储
@@ -49,6 +53,9 @@ func NewAmapRedisStore(ctx context.Context, config *RedisVectorStoreConfig) (*Am
 	if config == nil {
 		cfg := DefaultRedisConfig
 		config = &cfg
+	} else if config.TTLDays <= 0 {
+		// 如果未设置TTL或设置为负值，使用默认值
+		config.TTLDays = DefaultRedisConfig.TTLDays
 	}
 
 	client := redis.NewClient(&redis.Options{
@@ -61,6 +68,9 @@ func NewAmapRedisStore(ctx context.Context, config *RedisVectorStoreConfig) (*Am
 	if err := client.Ping(ctx).Err(); err != nil {
 		return nil, fmt.Errorf("连接Redis失败: %w", err)
 	}
+
+	log.Printf("创建Redis向量存储: 地址=%s, 索引前缀=%s, TTL=%d天",
+		config.Address, config.IndexPrefix, config.TTLDays)
 
 	return &AmapRedisStore{
 		client:         client,
@@ -147,6 +157,26 @@ func (s *AmapRedisStore) StoreDataVector(ctx context.Context, dataVector *DataVe
 		dataVector.Metadata.DataType,
 		dataVector.Metadata.ID)
 
+	// 1. 增量更新策略：检查是否存在相同ID的数据
+	exists, err := s.client.Exists(ctx, key).Result()
+	if err != nil {
+		log.Printf("检查键是否存在时出错: %v", err)
+	} else if exists > 0 {
+		log.Printf("键 %s 已存在，执行更新操作", key)
+
+		// 可以在这里添加额外逻辑，比如比较时间戳决定是否更新
+		// 获取现有数据的时间戳
+		existingTimestamp, err := s.client.HGet(ctx, key, "timestamp").Int64()
+		if err == nil && existingTimestamp >= dataVector.Metadata.Timestamp {
+			log.Printf("现有数据时间戳 %d 不早于新数据时间戳 %d，跳过更新",
+				existingTimestamp, dataVector.Metadata.Timestamp)
+			return nil
+		}
+
+		// 如果继续执行，则是覆盖更新
+		log.Printf("更新数据: ID=%s, 类型=%s", dataVector.Metadata.ID, dataVector.Metadata.DataType)
+	}
+
 	// 将向量数据转换为文档格式
 	doc := schema.Document{
 		ID:      dataVector.Metadata.ID,
@@ -202,6 +232,16 @@ func (s *AmapRedisStore) StoreDataVector(ctx context.Context, dataVector *DataVe
 	// 存储到Redis
 	if err := s.client.HSet(ctx, key, fields).Err(); err != nil {
 		return fmt.Errorf("存储到Redis失败: %w", err)
+	}
+
+	// 2. 设置TTL
+	if s.config.TTLDays > 0 {
+		expiration := time.Duration(s.config.TTLDays) * 24 * time.Hour
+		if err := s.client.Expire(ctx, key, expiration).Err(); err != nil {
+			log.Printf("设置键 %s 的过期时间失败: %v", key, err)
+		} else {
+			log.Printf("为键 %s 设置了 %v 的过期时间", key, expiration)
+		}
 	}
 
 	log.Printf("向量数据已存储到Redis, key: %s", key)

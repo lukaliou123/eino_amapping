@@ -30,6 +30,8 @@ type VectorConfig struct {
 	RedisConfig *RedisVectorStoreConfig
 	// 是否启用Redis存储
 	EnableRedisStore bool
+	// 数据过期时间（天），设置为RedisConfig.TTLDays，0表示使用默认值
+	TTLDays int
 }
 
 // DataVector 表示各种高德数据向量化后的结构
@@ -75,6 +77,7 @@ var (
 		StoragePath:      "data/amap_vectors",
 		Enabled:          false,
 		EnableRedisStore: false,
+		TTLDays:          3, // 默认3天过期
 	}
 
 	// 全局向量配置
@@ -121,12 +124,19 @@ func SetVectorConfig(config VectorConfig) {
 
 	// 初始化Redis存储
 	if vectorConfig.Enabled && vectorConfig.EnableRedisStore && vectorConfig.RedisConfig != nil {
+		// 如果配置中没有指定TTL，使用VectorConfig中的TTLDays
+		if vectorConfig.RedisConfig.TTLDays <= 0 && vectorConfig.TTLDays > 0 {
+			vectorConfig.RedisConfig.TTLDays = vectorConfig.TTLDays
+		} else if vectorConfig.RedisConfig.TTLDays <= 0 {
+			vectorConfig.RedisConfig.TTLDays = 3 // 默认3天
+		}
+
 		var err error
 		redisStore, err = NewAmapRedisStore(context.Background(), vectorConfig.RedisConfig)
 		if err != nil {
 			log.Printf("初始化Redis向量存储失败: %v", err)
 		} else {
-			log.Printf("已初始化Redis向量存储")
+			log.Printf("已初始化Redis向量存储，TTL设置为%d天", vectorConfig.RedisConfig.TTLDays)
 		}
 	}
 }
