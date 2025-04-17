@@ -52,10 +52,10 @@ func GetMCPTools(ctx context.Context, mcpClient *MCPClient) ([]tool.BaseTool, er
 	fmt.Printf("成功获取 %d 个MCP工具\n", len(tools))
 
 	// 打印获取到的工具名称
-	for i, t := range tools {
-		info, _ := t.Info(ctx)
-		fmt.Printf("%d. %s - %s\n", i+1, info.Name, info.Desc)
-	}
+	//for i, t := range tools {
+	//	info, _ := t.Info(ctx)
+	//	fmt.Printf("%d. %s - %s\n", i+1, info.Name, info.Desc)
+	//}
 
 	return tools, nil
 }
