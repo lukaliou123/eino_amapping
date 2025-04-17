@@ -30,10 +30,6 @@ github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XL
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cloudwego/base64x v0.1.5 h1:XPciSp1xaq2VCSt6lF0phncD4koWyULpl5bUxbfCyP4=
 github.com/cloudwego/base64x v0.1.5/go.mod h1:0zlkT4Wn5C6NdauXdJRhSKRlJvmclQ1hhJgA0rcu/8w=
-github.com/cloudwego/eino v0.3.20 h1:SiQH1SgRlu0aTTtUPjmbkZlC3VjCg8L6B9lDIEcNJmo=
-github.com/cloudwego/eino v0.3.20/go.mod h1:wUjz990apdsaOraOXdh6CdhVXq8DJsOvLsVlxNTcNfY=
-github.com/cloudwego/eino v0.3.24-0.20250417062506-843a7815b7d9 h1:+j172IvRqrOYTPpDtYVCFWVrL1nUT5AjkTv3AvGjzEQ=
-github.com/cloudwego/eino v0.3.24-0.20250417062506-843a7815b7d9/go.mod h1:wUjz990apdsaOraOXdh6CdhVXq8DJsOvLsVlxNTcNfY=
 github.com/cloudwego/eino v0.3.24-0.20250417073734-3a77074e6d5b h1:r1g9kjMcpk3RJYCQgFWrgSP4qe3PiHI+VCJVw+TMk1I=
 github.com/cloudwego/eino v0.3.24-0.20250417073734-3a77074e6d5b/go.mod h1:wUjz990apdsaOraOXdh6CdhVXq8DJsOvLsVlxNTcNfY=
 github.com/cloudwego/eino-ext/callbacks/apmplus v0.0.0-20250226083455-1ccdc82184a9 h1:0MnsNLZHwkvTDd3YWVp/gjOq1lRUNBZ9gk9F0pMfK8w=
@@ -48,14 +44,10 @@ github.com/cloudwego/eino-ext/components/embedding/ark v0.0.0-20250225083118-fd2
 github.com/cloudwego/eino-ext/components/embedding/ark v0.0.0-20250225083118-fd27d80f189c/go.mod h1:xfLjO0stTs9PopgXSBmj8dmUDJLXEiuPESN1dDWT2so=
 github.com/cloudwego/eino-ext/components/indexer/redis v0.0.0-20250225083118-fd27d80f189c h1:58ajRmwJaTSBmDTNWAreZ4ZVQE8bEw0mM+Z5PlwIjLo=
 github.com/cloudwego/eino-ext/components/indexer/redis v0.0.0-20250225083118-fd27d80f189c/go.mod h1:KDaN8oztE3Cu2ZcV0zHufVBa13BhJVbbG5RDzXKYaoc=
-github.com/cloudwego/eino-ext/components/model/ark v0.0.0-20250225083118-fd27d80f189c h1:eEx1kvm+QaY9rk72A4dVWiQ3Aq66aipc6EhETCDZ+1s=
-github.com/cloudwego/eino-ext/components/model/ark v0.0.0-20250225083118-fd27d80f189c/go.mod h1:E+vZK+7zt8ntzEB1wIMlfBQq8dNyZASryzLtQX9q7bM=
 github.com/cloudwego/eino-ext/components/model/ark v0.1.6 h1:k17Z9VIRBL0/t7Ty1drGgY9tVOraM5xuO6gy7Qx7xus=
 github.com/cloudwego/eino-ext/components/model/ark v0.1.6/go.mod h1:13kQjYGLMgla6xTbejlpqhuk3i5BPlNv5S+1pmknlOo=
 github.com/cloudwego/eino-ext/components/retriever/redis v0.0.0-20250225083118-fd27d80f189c h1:/WS9PynViCEdBK+zUUteFRxqx82fvPOVcjmtNrqxJmU=
 github.com/cloudwego/eino-ext/components/retriever/redis v0.0.0-20250225083118-fd27d80f189c/go.mod h1:iU/5QoRRQK1GyldawI6BbogyuIqOPLDJct3zDIVWqJ8=
-github.com/cloudwego/eino-ext/components/tool/duckduckgo v0.0.0-20250225083118-fd27d80f189c h1:04ok61D6U2i3Rbsx3bhSCoqAoTEWWd0Nu4YCQAqsUu0=
-github.com/cloudwego/eino-ext/components/tool/duckduckgo v0.0.0-20250225083118-fd27d80f189c/go.mod h1:8t2iDlxewqX7/kx0LX1QMRh6Qx9D5un5Kl/XM06COQo=
 github.com/cloudwego/eino-ext/components/tool/duckduckgo v0.0.0-20250416132037-d4cec2233549 h1:xXXHfC9YRZSqwvRQuUyviYbLc8jOfgQLis6V5xFI0Ac=
 github.com/cloudwego/eino-ext/components/tool/duckduckgo v0.0.0-20250416132037-d4cec2233549/go.mod h1:bLd1hxvmOxU0KZOl0Cd73CCku9gGSwx+DyX0nG7RJj0=
 github.com/cloudwego/eino-ext/components/tool/mcp v0.0.0-20250415073426-726b929afbc2 h1:cddJCeMfyl26OGQzXFjcRK3rcxQk/Y1KDsTfNMGFuMI=
@@ -274,8 +266,6 @@ github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65E
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/volcengine/volc-sdk-golang v1.0.23 h1:anOslb2Qp6ywnsbyq9jqR0ljuO63kg9PY+4OehIk5R8=
 github.com/volcengine/volc-sdk-golang v1.0.23/go.mod h1:AfG/PZRUkHJ9inETvbjNifTDgut25Wbkm2QoYBTbvyU=
-github.com/volcengine/volcengine-go-sdk v1.0.181 h1:/3PB4M1N4fjMqiSKTJwX43EZ5Nn1HUOtQrSCk+22+wI=
-github.com/volcengine/volcengine-go-sdk v1.0.181/go.mod h1:gfEDc1s7SYaGoY+WH2dRrS3qiuDJMkwqyfXWCa7+7oA=
 github.com/volcengine/volcengine-go-sdk v1.0.185 h1:MIH+YgdWZhO1fNg/vxLohl8ad7hlklaf46wpaTS1TN0=
 github.com/volcengine/volcengine-go-sdk v1.0.185/go.mod h1:gfEDc1s7SYaGoY+WH2dRrS3qiuDJMkwqyfXWCa7+7oA=
 github.com/wangle201210/chat-history v0.0.0-20250402104704-5eec15d5419e h1:pdG2LdTh2toVNke05pGmFtS4ZkuA6xt0rqT4pWE9HZk=

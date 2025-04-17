@@ -23,7 +23,25 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-func BuildEinoAgent(ctx context.Context) (r compose.Runnable[*UserMessage, *schema.Message], err error) {
+// 定义上下文键，用于在上下文中存储历史记录
+type contextKey string
+
+const HistoryKey contextKey = "eino_history"
+
+// HistoryManager 是一个接口，定义了历史记录管理器需要实现的方法
+type HistoryManager interface {
+	// GetHistory 获取指定会话的历史记录
+	GetHistory(conversationID string, limit int) ([]*schema.Message, error)
+	// SaveMessage 保存消息到指定会话
+	SaveMessage(message *schema.Message, conversationID string) error
+}
+
+func BuildEinoAgent(ctx context.Context, history HistoryManager) (r compose.Runnable[*UserMessage, *schema.Message], err error) {
+	// 将历史记录管理器存入上下文
+	if history != nil {
+		ctx = context.WithValue(ctx, HistoryKey, history)
+	}
+
 	const (
 		InputToQuery   = "InputToQuery"
 		ChatTemplate   = "ChatTemplate"

@@ -21,13 +21,13 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mark3labs/mcp-go v0.20.1
 	github.com/redis/go-redis/v9 v9.7.0
+	github.com/wangle201210/chat-history v0.0.0-20250402104704-5eec15d5419e
 )
 
 require (
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/wangle201210/chat-history v0.0.0-20250402104704-5eec15d5419e // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	gorm.io/driver/mysql v1.5.7 // indirect
 	gorm.io/gorm v1.25.12 // indirect

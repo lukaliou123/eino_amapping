@@ -34,6 +34,7 @@ import (
 
 	"github.com/cloudwego/eino-examples/quickstart/eino_assistant/eino/einoagent"
 	"github.com/cloudwego/eino-examples/quickstart/eino_assistant/pkg/mem"
+	chathistory "github.com/wangle201210/chat-history/eino"
 )
 
 var memory = mem.GetDefaultMemory()
@@ -41,6 +42,64 @@ var memory = mem.GetDefaultMemory()
 var cbHandler callbacks.Handler
 
 var once sync.Once
+
+// HistoryManager 是一个接口，定义了历史记录管理器需要实现的方法
+type HistoryManager interface {
+	// GetHistory 获取指定会话的历史记录
+	GetHistory(conversationID string, limit int) ([]*schema.Message, error)
+	// SaveMessage 保存消息到指定会话
+	SaveMessage(message *schema.Message, conversationID string) error
+}
+
+// MemoryHistoryManager 实现HistoryManager接口，基于内存存储
+type MemoryHistoryManager struct {
+	memory *mem.SimpleMemory
+}
+
+func NewMemoryHistoryManager(memory *mem.SimpleMemory) *MemoryHistoryManager {
+	return &MemoryHistoryManager{memory: memory}
+}
+
+func (m *MemoryHistoryManager) GetHistory(conversationID string, limit int) ([]*schema.Message, error) {
+	conv := m.memory.GetConversation(conversationID, false)
+	if conv == nil {
+		return []*schema.Message{}, nil
+	}
+	messages := conv.GetMessages()
+	if limit > 0 && len(messages) > limit {
+		return messages[len(messages)-limit:], nil
+	}
+	return messages, nil
+}
+
+func (m *MemoryHistoryManager) SaveMessage(message *schema.Message, conversationID string) error {
+	conv := m.memory.GetConversation(conversationID, true)
+	conv.Append(message)
+	return nil
+}
+
+// MySQLHistoryManager 实现HistoryManager接口，基于MySQL存储
+type MySQLHistoryManager struct {
+	history *chathistory.History
+}
+
+func NewMySQLHistoryManager(dsn string) (*MySQLHistoryManager, error) {
+	history := chathistory.NewEinoHistory(dsn)
+	return &MySQLHistoryManager{
+		history: history,
+	}, nil
+}
+
+func (m *MySQLHistoryManager) GetHistory(conversationID string, limit int) ([]*schema.Message, error) {
+	return m.history.GetHistory(conversationID, limit)
+}
+
+func (m *MySQLHistoryManager) SaveMessage(message *schema.Message, conversationID string) error {
+	return m.history.SaveMessage(message, conversationID)
+}
+
+// 全局历史管理器实例
+var historyManager HistoryManager = NewMemoryHistoryManager(memory)
 
 func Init() error {
 	var err error
@@ -100,23 +159,50 @@ func Init() error {
 		if len(callbackHandlers) > 0 {
 			callbacks.InitCallbackHandlers(callbackHandlers)
 		}
+
+		// 初始化历史记录管理器
+		initHistoryManager()
 	})
 	return err
 }
 
-func RunAgent(ctx context.Context, id string, msg string) (*schema.StreamReader[*schema.Message], error) {
+// 初始化历史记录管理
+func initHistoryManager() {
+	mysqlDSN := os.Getenv("MYSQL_DSN")
+	if mysqlDSN == "" {
+		log.Println("MySQL DSN not set, using memory history manager")
+		return
+	}
 
-	runner, err := einoagent.BuildEinoAgent(ctx)
+	// 尝试创建MySQL历史管理器
+	mysqlManager, err := NewMySQLHistoryManager(mysqlDSN)
+	if err != nil {
+		log.Printf("Failed to initialize MySQL history manager: %v, fallback to memory", err)
+		return
+	}
+
+	historyManager = mysqlManager
+	log.Printf("Using MySQL history manager with DSN: %s", mysqlDSN)
+}
+
+func RunAgent(ctx context.Context, id string, msg string) (*schema.StreamReader[*schema.Message], error) {
+	// 构建智能体，传入历史记录管理器
+	runner, err := einoagent.BuildEinoAgent(ctx, historyManager)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build agent graph: %w", err)
 	}
 
-	conversation := memory.GetConversation(id, true)
+	// 从历史管理器获取历史记录
+	messages, err := historyManager.GetHistory(id, 20)
+	if err != nil {
+		log.Printf("Failed to get history: %v, using empty history", err)
+		messages = []*schema.Message{}
+	}
 
 	userMessage := &einoagent.UserMessage{
 		ID:      id,
 		Query:   msg,
-		History: conversation.GetMessages(),
+		History: messages,
 	}
 
 	sr, err := runner.Stream(ctx, userMessage, compose.WithCallbacks(cbHandler))
@@ -134,15 +220,22 @@ func RunAgent(ctx context.Context, id string, msg string) (*schema.StreamReader[
 			// close stream if you used it
 			srs[1].Close()
 
-			// add user input to history
-			conversation.Append(schema.UserMessage(msg))
+			// 保存用户消息
+			userMsg := schema.UserMessage(msg)
+			if err := historyManager.SaveMessage(userMsg, id); err != nil {
+				log.Printf("Failed to save user message: %v", err)
+			}
 
 			fullMsg, err := schema.ConcatMessages(fullMsgs)
 			if err != nil {
 				fmt.Println("error concatenating messages: ", err.Error())
+				return
 			}
-			// add agent response to history
-			conversation.Append(fullMsg)
+
+			// 保存助手回复
+			if err := historyManager.SaveMessage(fullMsg, id); err != nil {
+				log.Printf("Failed to save assistant message: %v", err)
+			}
 		}()
 
 	outer:
