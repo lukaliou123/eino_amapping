@@ -1,16 +1,16 @@
 module github.com/cloudwego/eino-examples/quickstart/eino_assistant
 
-go 1.23
+go 1.23.1
 
 toolchain go1.24.2
 
 require (
-	github.com/cloudwego/eino v0.3.20
+	github.com/cloudwego/eino v0.3.24-0.20250417073734-3a77074e6d5b
 	github.com/cloudwego/eino-ext/callbacks/apmplus v0.0.0-20250226083455-1ccdc82184a9
 	github.com/cloudwego/eino-ext/callbacks/langfuse v0.0.0-20250117061805-cd80d1780d76
-	github.com/cloudwego/eino-ext/components/model/ark v0.0.0-20250225083118-fd27d80f189c
+	github.com/cloudwego/eino-ext/components/model/ark v0.1.6
 	github.com/cloudwego/eino-ext/components/retriever/redis v0.0.0-20250225083118-fd27d80f189c
-	github.com/cloudwego/eino-ext/components/tool/duckduckgo v0.0.0-20250225083118-fd27d80f189c
+	github.com/cloudwego/eino-ext/components/tool/duckduckgo v0.0.0-20250416132037-d4cec2233549
 	github.com/cloudwego/eino-ext/components/tool/mcp v0.0.0-20250415073426-726b929afbc2
 	github.com/cloudwego/eino-ext/devops v0.1.3
 	github.com/cloudwego/hertz v0.9.5
@@ -21,13 +21,16 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mark3labs/mcp-go v0.20.1
 	github.com/redis/go-redis/v9 v9.7.0
-	github.com/stretchr/testify v1.10.0
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/wangle201210/chat-history v0.0.0-20250402104704-5eec15d5419e // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
+	gorm.io/driver/mysql v1.5.7 // indirect
+	gorm.io/gorm v1.25.12 // indirect
 )
 
 require (
@@ -77,7 +80,7 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/volcengine/volc-sdk-golang v1.0.23 // indirect
-	github.com/volcengine/volcengine-go-sdk v1.0.181
+	github.com/volcengine/volcengine-go-sdk v1.0.185
 	github.com/yargevad/filepathx v1.0.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.59.0 // indirect

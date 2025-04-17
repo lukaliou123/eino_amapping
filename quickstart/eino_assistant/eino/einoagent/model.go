@@ -53,11 +53,17 @@ func NewCurlLogger(next http.RoundTripper, logf func(format string, v ...interfa
 
 // RoundTrip 实现 http.RoundTripper 接口
 func (c *CurlLogger) RoundTrip(req *http.Request) (*http.Response, error) {
-	// 生成并打印 curl 命令
-	curlCmd := generateCurlCommand(req)
-	c.logf("CURL: %s\n", curlCmd)
-	// 调用下一个处理器
-	return c.next.RoundTrip(req)
+	resp, err := c.next.RoundTrip(req)
+	if err != nil {
+		return resp, err
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return resp, fmt.Errorf("error reading response body: %v", err)
+	}
+	c.logf("%s", string(body))
+	resp.Body = io.NopCloser(bytes.NewReader(body))
+	return resp, nil
 }
 
 // generateCurlCommand 将 HTTP 请求转换为等效的 curl 命令
