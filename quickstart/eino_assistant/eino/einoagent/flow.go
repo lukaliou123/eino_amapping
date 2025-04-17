@@ -18,7 +18,6 @@ package einoagent
 
 import (
 	"context"
-
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/flow/agent/react"
 )
